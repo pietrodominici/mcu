@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laboratorio MCU e Moto Armonico</title>
+    <meta name="description" content="Laboratorio interattivo di fisica con Three.js che illustra il Moto Circolare Uniforme come motore generativo del Moto Armonico con vettori, proiezione e grafico in tempo reale." />
+    <meta property="og:title" content="Laboratorio MCU e Moto Armonico" />
+    <meta property="og:description" content="Laboratorio interattivo di fisica con Three.js: simulazione sincronizzata di Moto Circolare Uniforme e Moto Armonico con vettori e grafico live." />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="./style.css" />
+    <!-- Libreria 3D Three.js caricata da CDN stabile -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  </head>
+  <body>
+    <div id="app-root" class="app-container">
+      
+      <!-- Intestazione Principale -->
+      <header id="main-header" class="app-header">
+        <div id="header-top" class="header-top-row">
+          <div id="brand-indicator" class="brand-badge">
+            <span id="badge-dot" class="badge-dot"></span>
+            Fisica Interattiva • Modello Cinematico
+          </div>
+          <div id="clock-status-wrap" class="buttons-group">
+            <span id="clock-display" class="control-value-badge" aria-label="Tempo simulato">t = 0.00 s</span>
+          </div>
+        </div>
+        <h1 id="page-title" class="app-title">Moto Circolare Uniforme e Moto Armonico</h1>
+        <p id="page-desc" class="app-subtitle">
+          Esplorazione visiva del Moto Circolare Uniforme (MCU) come <em>motore generativo</em> geometrico: la proiezione ortogonale del moto circolare su un diametro produce fedelmente il Moto Armonico Semplice.
+        </p>
+      </header>
+
+      <!-- Pannello Controlli Condiviso -->
+      <section id="shared-control-panel" class="panel-controls" aria-label="Pannello di controllo parametri fisici">
+        <div id="controls-top-bar" class="controls-heading-row">
+          <h2 id="panel-title-text" class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            Parametri Cinematici Condivisi
+          </h2>
+          <div id="playback-controls" class="buttons-group">
+            <button id="btn-play-pause" type="button" class="btn btn-primary" aria-label="Avvia o metti in pausa l'animazione">
+              <span id="icon-play-pause">⏸</span>
+              <span id="label-play-pause">Pausa</span>
+            </button>
+            <button id="btn-step" type="button" class="btn" aria-label="Avanza di un singolo passo temporale">
+              <span>⏯</span>
+              <span>Passo</span>
+            </button>
+            <button id="btn-reset" type="button" class="btn" aria-label="Reimposta il tempo e la simulazione a zero">
+              <span>↺</span>
+              <span>Azzera (t=0)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Griglia degli Slider Nativi Accessibili -->
+        <div id="sliders-container" class="sliders-grid">
+          
+          <!-- Slider Raggio r -->
+          <div id="control-group-radius" class="control-item">
+            <div class="control-header">
+              <label id="label-slider-r" for="slider-radius" class="control-label">Raggio orbita / Ampiezza (r)</label>
+              <span id="badge-radius-val" class="control-value-badge">2.00 m</span>
+            </div>
+            <input 
+              id="slider-radius" 
+              class="range-slider" 
+              type="range" 
+              min="0.8" 
+              max="3.0" 
+              step="0.05" 
+              value="2.0" 
+              aria-labelledby="label-slider-r"
+              aria-valuemin="0.8"
+              aria-valuemax="3.0"
+              aria-valuenow="2.0"
+            />
+            <div class="slider-limits">
+              <span>0.80 m</span>
+              <span class="control-formula">Ampiezza A = r</span>
+              <span>3.00 m</span>
+            </div>
+          </div>
+
+          <!-- Slider Pulsazione omega -->
+          <div id="control-group-omega" class="control-item">
+            <div class="control-header">
+              <label id="label-slider-omega" for="slider-omega" class="control-label">Pulsazione angolare (ω)</label>
+              <span id="badge-omega-val" class="control-value-badge">1.20 rad/s</span>
+            </div>
+            <input 
+              id="slider-omega" 
+              class="range-slider" 
+              type="range" 
+              min="0.2" 
+              max="4.0" 
+              step="0.05" 
+              value="1.2" 
+              aria-labelledby="label-slider-omega"
+              aria-valuemin="0.2"
+              aria-valuemax="4.0"
+              aria-valuenow="1.2"
+            />
+            <div class="slider-limits">
+              <span>0.20 rad/s</span>
+              <span class="control-formula">ω = 2π / T</span>
+              <span>4.00 rad/s</span>
+            </div>
+          </div>
+
+          <!-- Slider Fase Iniziale phi0 -->
+          <div id="control-group-phi0" class="control-item">
+            <div class="control-header">
+              <label id="label-slider-phi0" for="slider-phi0" class="control-label">Fase iniziale (φ₀)</label>
+              <span id="badge-phi0-val" class="control-value-badge">0.00 rad (0°)</span>
+            </div>
+            <input 
+              id="slider-phi0" 
+              class="range-slider" 
+              type="range" 
+              min="0" 
+              max="6.283" 
+              step="0.05" 
+              value="0" 
+              aria-labelledby="label-slider-phi0"
+              aria-valuemin="0"
+              aria-valuemax="6.283"
+              aria-valuenow="0"
+            />
+            <div class="slider-limits">
+              <span>0.00 rad (0°)</span>
+              <span class="control-formula">α(0) = φ₀</span>
+              <span>2π rad (360°)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Barra di Telemetria in Tempo Reale -->
+        <div id="telemetry-bar" class="telemetry-strip" aria-label="Valori cinematici calcolati in tempo reale">
+          <div id="tel-card-period" class="telemetry-card">
+            <span class="telemetry-label">Periodo (T = 2π/ω)</span>
+            <span id="val-period" class="telemetry-val highlight-gold">5.24 s</span>
+          </div>
+          <div id="tel-card-freq" class="telemetry-card">
+            <span class="telemetry-label">Frequenza (f = 1/T)</span>
+            <span id="val-freq" class="telemetry-val highlight-gold">0.19 Hz</span>
+          </div>
+          <div id="tel-card-vel" class="telemetry-card">
+            <span class="telemetry-label">Velocità Tangenziale (v = ω·r)</span>
+            <span id="val-vel" class="telemetry-val highlight-velocity">2.40 m/s</span>
+          </div>
+          <div id="tel-card-accel" class="telemetry-card">
+            <span class="telemetry-label">Acc. Centripeta (a_c = ω²·r)</span>
+            <span id="val-accel" class="telemetry-val highlight-accel">2.88 m/s²</span>
+          </div>
+          <div id="tel-card-posx" class="telemetry-card">
+            <span class="telemetry-label">Posizione Armonica x(t)</span>
+            <span id="val-posx" class="telemetry-val highlight-gold">+2.00 m</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Griglia Principale dei Due Moduli Collegati (Desktop: affiancati, Mobile: impilati) -->
+      <main id="modules-container" class="modules-grid">
+        
+        <!-- ===================================================================
+             MODULO 1: Moto Circolare Uniforme (MCU)
+             =================================================================== -->
+        <article id="module-mcu-card" class="module-card" aria-labelledby="heading-mcu">
+          <header class="module-header">
+            <div class="module-title-wrap">
+              <span class="module-badge">Modulo 1</span>
+              <h2 id="heading-mcu" class="module-title">Moto Circolare Uniforme (MCU)</h2>
+            </div>
+            <span id="mcu-sub-badge" class="control-formula">α = φ₀ + ωt</span>
+          </header>
+
+          <!-- Viewport 3D Three.js -->
+          <div id="viewport-mcu-wrap" class="viewport-container" aria-label="Visualizzazione 3D del Moto Circolare Uniforme">
+            <canvas id="canvas-mcu" class="viewport-canvas"></canvas>
+
+            <!-- Legenda Vettori -->
+            <div id="legend-mcu" class="viewport-legend">
+              <div class="legend-row">
+                <span class="legend-color-box velocity"></span>
+                <span>Vettore Velocità tangenziale (<strong style="color: var(--color-velocity);">v</strong>)</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-color-box accel"></span>
+                <span>Vettore Accelerazione centripeta (<strong style="color: var(--color-accel);">a_c</strong>)</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-color-box orbit"></span>
+                <span>Traiettoria circolare di raggio <strong>r</strong></span>
+              </div>
+            </div>
+
+            <!-- Etichette Proiettate Screen-Space -->
+            <div id="label-v" class="screen-label label-v">v</div>
+            <div id="label-ac" class="screen-label label-ac">a_c</div>
+            <div id="label-p" class="screen-label label-p">P(t)</div>
+          </div>
+
+          <!-- Spiegazione Tecnica del Modulo MCU -->
+          <footer id="explanation-mcu" class="module-explanation">
+            <h3 class="explanation-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              Osservazione Fisica & Vettori
+            </h3>
+            <p id="desc-mcu-text" class="explanation-text">
+              La sfera percorre una circonferenza di raggio <strong>r</strong> a velocità scalare costante <span class="explanation-formula-pill">v = ω · r</span>. Poiché la direzione della traiettoria curva costantemente ad ogni istante, il corpo subisce un'accelerazione centripeta <span class="explanation-formula-pill">a_c = r · ω²</span> diretta in modo permanente verso il centro. <em>Aumentando la pulsazione ω, il periodo T si contrae e l'accelerazione centripeta cresce con andamento quadratico</em>, intensificando visibilmente il vettore rosso verso l'origine.
+            </p>
+          </footer>
+        </article>
+
+        <!-- ===================================================================
+             MODULO 2: Moto Armonico Semplice & Proiezione Lineare
+             =================================================================== -->
+        <article id="module-harmonic-card" class="module-card" aria-labelledby="heading-harmonic">
+          <header class="module-header">
+            <div class="module-title-wrap">
+              <span class="module-badge">Modulo 2</span>
+              <h2 id="heading-harmonic" class="module-title">Moto Armonico & Proiezione</h2>
+            </div>
+            <span id="harmonic-sub-badge" class="control-formula">x(t) = r · cos(φ₀ + ωt)</span>
+          </header>
+
+          <!-- Viewport 3D Proiezione & Ombra -->
+          <div id="viewport-harmonic-wrap" class="viewport-container" aria-label="Visualizzazione 3D dell'Ombra proiettata e asse del moto armonico">
+            <canvas id="canvas-harmonic" class="viewport-canvas"></canvas>
+
+            <!-- Legenda Proiezione -->
+            <div id="legend-harmonic" class="viewport-legend">
+              <div class="legend-row">
+                <span class="legend-color-box projection"></span>
+                <span>Linea di proiezione ortogonale (tratteggiata)</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-color-box orbit"></span>
+                <span>Particella oscillante ("ombra") su asse x</span>
+              </div>
+            </div>
+
+            <!-- Etichette Screen-Space per il Moto Armonico -->
+            <div id="label-shadow" class="screen-label label-p">x(t)</div>
+          </div>
+
+          <!-- Sottomodulo Grafico 2D in Tempo Reale -->
+          <div id="harmonic-chart-section" class="harmonic-submodule">
+            <div id="chart-controls-bar" class="chart-header">
+              <span class="chart-title">Grafico in tempo reale della Legge Oraria x(t)</span>
+              <span id="chart-status-badge" class="chart-badge">x = r · cos(α)</span>
+            </div>
+            <div id="chart-container" class="chart-canvas-wrap">
+              <canvas id="canvas-graph" class="chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Spiegazione Tecnica del Modulo Moto Armonico -->
+          <footer id="explanation-harmonic" class="module-explanation">
+            <h3 class="explanation-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              Ombra Geometrica & Oscillazione
+            </h3>
+            <p id="desc-harmonic-text" class="explanation-text">
+              Proiettando ortogonalmente la sfera dell'orbita sull'asse orizzontale mediante la linea tratteggiata, il punto "ombra" oscilla tra gli estremi <span class="explanation-formula-pill">x = ±r</span> seguendo la legge <span class="explanation-formula-pill">x = r · cos(φ₀ + ωt)</span>. Agli estremi l'ombra inverte il moto arrestandosi istantaneamente prima di riaccelerare verso il centro dove raggiunge la massima velocità di transito. <em>Variando ω con lo slider, la curva d'onda a coseno nel grafico si comprime o dilata in tempo reale con continuità geometrica assoluta</em>.
+            </p>
+          </footer>
+        </article>
+
+      </main>
+
+      <!-- Sintesi Formule Didattiche a Piè di Pagina -->
+      <footer id="page-footer" class="app-footer">
+        <div id="formulas-bar" class="formulas-summary-bar">
+          <div class="formula-chip">
+            <span>Posizione Angolare:</span>
+            <span class="formula-chip-val">α = φ₀ + ωt</span>
+          </div>
+          <div class="formula-chip">
+            <span>Legge Oraria Armonica:</span>
+            <span class="formula-chip-val">x(t) = r · cos(φ₀ + ωt)</span>
+          </div>
+          <div class="formula-chip">
+            <span>Accelerazione Centripeta:</span>
+            <span class="formula-chip-val">a_c = v² / r = r · ω²</span>
+          </div>
+          <div class="formula-chip">
+            <span>Periodo & Frequenza:</span>
+            <span class="formula-chip-val">T = 2π / ω | f = 1 / T</span>
+          </div>
+        </div>
+        <div class="footer-copy">
+          <span>Simulazione didattica fisica WebGL • Three.js nativo a 60 FPS</span>
+          <span>Sincronizzazione orologio unificato • Zero salti di fase alla variazione di ω</span>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- Script del Laboratorio Didattico -->
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Laboratorio MCU e Moto Armonico",
+  "description": "Laboratorio interattivo di fisica con Three.js che illustra il Moto Circolare Uniforme come motore generativo del Moto Armonico con vettori, proiezione e grafico in tempo reale.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
